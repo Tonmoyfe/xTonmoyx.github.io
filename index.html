@@ -1,11 +1,258 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>My Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xTonmoyx Download Hub – Minecraft Add-ons, Textures, Maps, Skins & Skin Packs</title>
+<meta name="description" content="Free Minecraft Bedrock downloads by xTonmoyx. Add-ons, textures, maps, skins and skin packs.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6fb;--surface:#fff;--surface2:#eceefa;--text:#161a33;--muted:#5d6486;--line:#dfe2f2;--blurple:#5865f2;--shadow:0 8px 24px rgba(22,26,51,.08);
+--hd:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;--bd:'DM Sans','Segoe UI',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12162b;--surface:#1a2040;--surface2:#232a52;--text:#eef0ff;--muted:#a3a9d1;--line:#2d3566;--shadow:0 8px 24px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{--bg:#12162b;--surface:#1a2040;--surface2:#232a52;--text:#eef0ff;--muted:#a3a9d1;--line:#2d3566;--shadow:0 8px 24px rgba(0,0,0,.35)}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--bd);line-height:1.55}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:3px solid var(--blurple);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;height:66px}
+.logo{display:flex;align-items:center;gap:10px;font:800 1.3rem var(--hd)}
+.logo i{display:grid;place-items:center;width:36px;height:36px;border-radius:9px;background:var(--blurple);color:#fff;font-style:normal}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:none;border:0;padding:8px 13px;border-radius:8px;font-weight:500;color:var(--muted)}
+nav button:hover,nav button.on{background:var(--surface2);color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:0;font-weight:700;background:var(--blurple);color:#fff}
+.btn:hover{filter:brightness(1.1)}.btn.alt{background:var(--surface2);color:var(--text)}.btn.danger{background:#d6453d}
+.icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+@media(max-width:900px){nav{display:none}.bar{justify-content:space-between}.hide-s{display:none}}
+.mnav{display:none;gap:6px;overflow-x:auto;padding:10px 20px;border-bottom:1px solid var(--line)}
+.mnav button{white-space:nowrap;padding:6px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface)}
+.mnav button.on{background:var(--text);color:var(--bg)}
+@media(max-width:900px){.mnav{display:flex}}
+.hero{padding:72px 0 40px}
+.hero h1{font:800 clamp(2.3rem,6vw,4.2rem)/1.04 var(--hd);letter-spacing:-.03em;max-width:15ch}
+.hero p{margin:18px 0 28px;color:var(--muted);font-size:1.1rem;max-width:52ch}
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:8px 8px 8px 18px;box-shadow:var(--shadow);max-width:680px}
+.search:focus-within{border-color:var(--blurple)}
+.search input{flex:1;border:0;background:none;color:var(--text);font:500 1.05rem var(--bd);padding:10px 0;min-width:0}
+.search input:focus{outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{padding:6px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:.9rem;color:var(--muted)}
+.chip:hover{border-color:var(--blurple);color:var(--text)}
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:34px 0 18px}
+select{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit}
+h2{font:800 1.5rem var(--hd);letter-spacing:-.01em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding-bottom:50px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;text-align:left;padding:0;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.thumb{height:150px;display:grid;place-items:center;font-size:3.2rem;background-size:cover;background-position:center}
+.card .in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{font:700 1.05rem var(--hd)}.card .meta{font-size:.85rem;color:var(--muted)}
+.card .desc{font-size:.9rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty{grid-column:1/-1;text-align:center;padding:60px 10px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:30px 0 40px;color:var(--muted);font-size:.92rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+footer .links{display:flex;gap:16px}footer a:hover{color:var(--text)}
+dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 32px);max-height:92vh;background:var(--surface);color:var(--text);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(8,10,25,.6)}
+.m-body{padding:22px}.m-head{display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:10px}
+.x{width:36px;height:36px;border-radius:9px;border:0;background:var(--surface2);font-size:1.1rem}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}.tag{padding:4px 12px;border-radius:99px;background:var(--surface2);font-size:.85rem}
+label{display:block;font-weight:700;font-size:.88rem;margin:12px 0 4px}
+.f{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+textarea.f{min-height:80px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{font-size:.85rem;color:var(--muted);margin-top:10px}
+details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}summary{cursor:pointer;font-weight:700}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;z-index:50;font-weight:500}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.admin-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
-    <h1>Welcome to my website!</h1>
-    <p>Ami ekhon github page chalacchi!</p>
+<header>
+  <div class="wrap bar">
+    <div class="logo"><i>⛏</i>xTonmoyx</div>
+    <nav id="nav"></nav>
+    <a class="btn alt hide-s" href="https://discord.gg/JwYHKSkRt4" target="_blank" rel="noopener">Discord</a>
+    <button class="btn" id="authBtn">Login</button>
+    <button class="icon-btn" id="theme" aria-label="Switch theme">◐</button>
+  </div>
+  <div class="mnav" id="mnav"></div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Free Minecraft downloads</h1>
+    <p>Add-ons, textures, maps, skins and skin packs for Bedrock, by xTonmoyx. Search, pick, download. No login needed.</p>
+    <div class="search">
+      <span aria-hidden="true">🔎</span>
+      <input id="q" type="search" placeholder="Search add-ons, maps, skin packs…" aria-label="Search downloads" autocomplete="off">
+      <button class="btn" id="go">Search</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </section>
+  <div class="tools" id="list">
+    <h2 id="title">Latest uploads</h2>
+    <select id="sort" aria-label="Sort"><option value="new">Newest</option><option value="az">A to Z</option></select>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© <span id="yr"></span> xTonmoyx. Not affiliated with Mojang or Microsoft.</div>
+    <div class="links">
+      <a href="https://youtube.com/@xtonmoyx" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://discord.gg/JwYHKSkRt4" target="_blank" rel="noopener">Discord</a>
+    </div>
+  </div>
+</footer>
+
+<dialog id="dlg"><div class="m-body" id="dlgBody"></div></dialog>
+<dialog id="adm"><div class="m-body" id="admBody"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== SETTINGS: change the password! ===== */
+const CONFIG = {
+  discord:"https://discord.gg/JwYHKSkRt4",
+  youtube:"https://youtube.com/@xtonmoyx",
+  adminUser:"xtonmoyx",
+  adminPassword:"Tonmoy12345scbbhssavar"
+};
+const CATS = [["all","Home"],["Add-on","Add-ons"],["Texture","Textures"],["Map","Maps"],["Skin","Skins"],["Skin Pack","Skin Packs"]];
+
+const DEFAULT_ITEMS = [
+ {id:1,title:"xTonmoyx Skin Pack",category:"Skin Pack",version:"All",size:"ZIP",date:"2026-11-19",
+  desc:"Skin pack download for Minecraft Bedrock. Open the file on your phone or PC to import it.",
+  link:"https://www.mediafire.com/file/jctzljfgh3c2c6i/skin+pack.zip/file",image:"",emoji:"🧑‍🎤"}
+];
+
+const $ = s=>document.querySelector(s);
+const toast = m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)};
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u=>/^(https?:\/\/|#|\/)/i.test(u||"")?u:"#";
+const GRADS={"Add-on":["#5865f2","#8a63f5"],"Texture":["#12a37f","#4fd1a5"],"Map":["#e07a3f","#f3b562"],"Skin":["#d6459a","#f08bc0"],"Skin Pack":["#7b3fe4","#e0509c"]};
+const ICON={"Add-on":"🧩","Texture":"🎨","Map":"🗺️","Skin":"🧑","Skin Pack":"🎭"};
+let items=[], state={cat:"all",q:"",sort:"new"};
+const isAuth=()=>localStorage.getItem("xt_auth")==="1";
+const gh=()=>{try{return JSON.parse(localStorage.getItem("xt_gh")||"{}")}catch(e){return{}}};
+
+async function load(){
+  items=DEFAULT_ITEMS;
+  try{const r=await fetch("items.json?"+Date.now(),{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j))items=j;}}catch(e){}
+  render();
+}
+function filtered(){
+  const q=state.q.trim().toLowerCase();
+  return items.filter(i=>(state.cat==="all"||i.category===state.cat)&&(!q||(i.title+" "+i.category+" "+i.desc+" "+i.version).toLowerCase().includes(q)))
+   .sort((a,b)=>state.sort==="az"?a.title.localeCompare(b.title):(b.date||"").localeCompare(a.date||"")||b.id-a.id);
+}
+function render(){
+  const list=filtered(), name=(CATS.find(c=>c[0]===state.cat)||[])[1];
+  $("#title").textContent=state.q?`Results for “${state.q}”`:(state.cat==="all"?"Latest uploads":name);
+  $("#grid").innerHTML=list.length?list.map(card).join(""):`<div class="empty"><h3>Nothing found</h3><p>Try a different word, or pick another category.</p></div>`;
+  const nav=CATS.map(c=>`<button data-cat="${c[0]}" class="${state.cat===c[0]?"on":""}">${c[1]}</button>`).join("");
+  $("#nav").innerHTML=nav;$("#mnav").innerHTML=nav;
+  $("#chips").innerHTML=CATS.slice(1).map(c=>`<button class="chip" data-cat="${c[0]}">${c[1]}</button>`).join("");
+  $("#authBtn").textContent=isAuth()?"Upload":"Login";
+}
+function thumb(i){
+  const g=GRADS[i.category]||["#5865f2","#8a63f5"];
+  const bg=i.image?`background-image:url('${esc(safeUrl(i.image))}')`:`background-image:linear-gradient(135deg,${g[0]},${g[1]})`;
+  return `<div class="thumb" style="${bg}">${i.image?"":esc(i.emoji||ICON[i.category]||"📦")}</div>`;
+}
+function card(i){return `<button class="card" data-id="${i.id}">${thumb(i)}<div class="in"><h3>${esc(i.title)}</h3><div class="meta">${esc(i.category)} · ${esc(i.version)} · ${esc(i.size)}</div><div class="desc">${esc(i.desc)}</div></div></button>`}
+function openItem(id){
+  const i=items.find(x=>x.id==id);if(!i)return;
+  $("#dlgBody").innerHTML=`<div class="m-head"><h2>${esc(i.title)}</h2><button class="x" data-close aria-label="Close">✕</button></div>
+   <div style="border-radius:12px;overflow:hidden">${thumb(i)}</div>
+   <div class="row"><span class="tag">${esc(i.category)}</span><span class="tag">Version ${esc(i.version)}</span><span class="tag">${esc(i.size)}</span><span class="tag">${esc(i.date)}</span></div>
+   <p style="color:var(--muted);margin-bottom:20px">${esc(i.desc)}</p>
+   <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="${esc(safeUrl(i.link))}" target="_blank" rel="noopener">Download</a><a class="btn alt" href="${CONFIG.youtube}" target="_blank" rel="noopener">Watch on YouTube</a></div>`;
+  $("#dlg").showModal();
+}
+
+/* ===== LOGIN ===== */
+function openLogin(){
+  $("#admBody").innerHTML=`<div class="m-head"><h2>Admin login</h2><button class="x" data-close aria-label="Close">✕</button></div>
+   <p class="note" style="margin:0 0 6px">Only the owner needs to log in. Visitors can download without an account.</p>
+   <label for="l_u">Username</label><input class="f" id="l_u" autocomplete="username">
+   <label for="l_p">Password</label><input class="f" id="l_p" type="password" autocomplete="current-password">
+   <div style="margin-top:18px"><button class="btn" id="l_go">Log in</button></div>`;
+  const go=()=>{
+    if($("#l_u").value.trim()===CONFIG.adminUser&&$("#l_p").value===CONFIG.adminPassword){localStorage.setItem("xt_auth","1");render();openAdmin();toast("Logged in")}
+    else toast("Wrong username or password");
+  };
+  $("#l_go").onclick=go;$("#l_p").onkeydown=e=>{if(e.key==="Enter")go()};
+  $("#adm").showModal();
+}
+
+/* ===== PUBLISH TO GITHUB (commits items.json, Netlify redeploys) ===== */
+async function publish(){
+  const s=gh();if(!s.repo||!s.token)throw new Error("Save your GitHub settings first");
+  const url=`https://api.github.com/repos/${s.repo}/contents/items.json`,br=s.branch||"main";
+  const H={Authorization:"Bearer "+s.token,Accept:"application/vnd.github+json"};
+  let sha;const g=await fetch(`${url}?ref=${br}`,{headers:H});
+  if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error("GitHub error "+g.status+" (check repo/token)");
+  const body={message:"Update downloads",branch:br,content:btoa(unescape(encodeURIComponent(JSON.stringify(items,null,2))))};
+  if(sha)body.sha=sha;
+  const p=await fetch(url,{method:"PUT",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!p.ok)throw new Error("Publish failed: "+p.status);
+}
+async function safePublish(){
+  try{toast("Publishing…");await publish();toast("Published! Live in about a minute.")}
+  catch(e){toast(e.message)}
+}
+
+function openAdmin(){
+  const s=gh();
+  $("#admBody").innerHTML=`<div class="m-head"><h2>Upload a download</h2><button class="x" data-close aria-label="Close">✕</button></div>
+   <label>Title</label><input class="f" id="a_title">
+   <div class="two"><div><label>Category</label><select class="f" id="a_cat">${CATS.slice(1).map(c=>`<option value="${c[0]}">${c[0]}</option>`).join("")}</select></div>
+   <div><label>Version</label><input class="f" id="a_ver" placeholder="1.21+"></div></div>
+   <div class="two"><div><label>File size</label><input class="f" id="a_size" placeholder="12 MB"></div><div><label>Cover image link (optional)</label><input class="f" id="a_img" placeholder="https://…"></div></div>
+   <label>Download link (Mediafire, Mega, Drive…)</label><input class="f" id="a_link" placeholder="https://">
+   <label>Description</label><textarea class="f" id="a_desc"></textarea>
+   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="a_add">Add & publish</button><button class="btn alt" id="a_out">Log out</button></div>
+   <details ${s.repo&&s.token?"":"open"}><summary>GitHub publish settings</summary>
+    <p class="note">One-time setup. Stored only in this browser. The token needs “Contents: Read and write” on your website repo.</p>
+    <label>Repo (username/repo)</label><input class="f" id="g_repo" value="${esc(s.repo||"")}" placeholder="yourname/your-repo">
+    <div class="two"><div><label>Branch</label><input class="f" id="g_br" value="${esc(s.branch||"main")}"></div><div><label>Token</label><input class="f" id="g_tk" type="password" value="${esc(s.token||"")}" placeholder="github_pat_…"></div></div>
+    <div style="margin-top:12px"><button class="btn alt" id="g_save">Save settings</button></div></details>
+   <h2 style="font-size:1.1rem;margin-top:18px">Your items</h2><div id="a_list"></div>`;
+  const list=()=>{$("#a_list").innerHTML=items.map(i=>`<div class="admin-item"><span>${esc(i.title)} <small style="color:var(--muted)">(${esc(i.category)})</small></span><button class="x" data-del="${i.id}" aria-label="Delete ${esc(i.title)}">🗑</button></div>`).join("")||`<p class="note">No items yet.</p>`};
+  list();
+  $("#g_save").onclick=()=>{localStorage.setItem("xt_gh",JSON.stringify({repo:$("#g_repo").value.trim(),branch:$("#g_br").value.trim()||"main",token:$("#g_tk").value.trim()}));toast("Settings saved")};
+  $("#a_out").onclick=()=>{localStorage.removeItem("xt_auth");render();$("#adm").close();toast("Logged out")};
+  $("#a_add").onclick=async()=>{
+    const title=$("#a_title").value.trim(),link=$("#a_link").value.trim();
+    if(!title||!link)return toast("Enter a title and a download link");
+    items.unshift({id:Date.now(),title,category:$("#a_cat").value,version:$("#a_ver").value||"All",size:$("#a_size").value||"-",date:new Date().toISOString().slice(0,10),desc:$("#a_desc").value,link,image:$("#a_img").value.trim()});
+    render();list();["a_title","a_ver","a_size","a_link","a_img","a_desc"].forEach(k=>$("#"+k).value="");
+    await safePublish();
+  };
+  $("#a_list").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Delete this download?")){items=items.filter(x=>x.id!=d.dataset.del);render();list();await safePublish()}};
+  $("#adm").showModal();
+}
+
+/* ===== EVENTS ===== */
+const setCat=c=>{state.cat=c;render();$("#list").scrollIntoView({behavior:"smooth"})};
+$("#authBtn").onclick=()=>isAuth()?openAdmin():openLogin();
+$("#q").addEventListener("input",e=>{state.q=e.target.value;render()});
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")$("#list").scrollIntoView({behavior:"smooth"})});
+$("#go").onclick=()=>{state.q=$("#q").value;render();$("#list").scrollIntoView({behavior:"smooth"})};
+["#nav","#mnav","#chips"].forEach(s=>$(s).addEventListener("click",e=>{const b=e.target.closest("[data-cat]");if(b)setCat(b.dataset.cat)}));
+$("#sort").onchange=e=>{state.sort=e.target.value;render()};
+$("#grid").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openItem(c.dataset.id)});
+document.addEventListener("click",e=>{if(e.target.closest("[data-close]"))e.target.closest("dialog").close();if(e.target.tagName==="DIALOG")e.target.close()});
+$("#theme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=d?"light":"dark"};
+$("#yr").textContent=new Date().getFullYear();
+load();
+</script>
 </body>
 </html>
