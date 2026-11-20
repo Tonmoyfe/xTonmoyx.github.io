@@ -83,7 +83,17 @@ details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:
 .btn[disabled]{opacity:.75;cursor:wait}
 .report{display:inline-block;margin-top:14px;font-size:.85rem;color:var(--muted);text-decoration:underline}
 .report:hover{color:var(--text)}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.hero>*{animation:up .6s backwards}.hero>*:nth-child(2){animation-delay:.08s}.hero>*:nth-child(3){animation-delay:.16s}.hero>*:nth-child(4){animation-delay:.24s}
+.rv{opacity:0}.rv.in{opacity:1;animation:up .5s backwards}
+.sec{margin-top:56px}.sec>h2{margin-bottom:6px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
+.proj{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,border-color .2s}
+.proj:hover{transform:translateY(-3px);border-color:var(--blurple)}
+.pic{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:var(--surface2);font:800 1.6rem var(--hd);overflow:hidden}.pic img{width:100%;height:100%;object-fit:contain}
+.badge{font-size:.75rem;padding:3px 10px;border-radius:99px;background:var(--surface2);white-space:nowrap}.badge.live{background:#12a37f;color:#fff}
+.ph{display:flex;justify-content:space-between;gap:8px;align-items:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -114,6 +124,8 @@ details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:
     <select id="sort" aria-label="Sort"><option value="new">Newest</option><option value="az">A to Z</option></select>
   </div>
   <div class="grid" id="grid"></div>
+  <section class="sec" id="projects"></section>
+  <section class="sec" id="support"></section>
 </main>
 
 <footer>
@@ -141,13 +153,14 @@ const CONFIG = {
   youtube:"https://youtube.com/@xtonmoyx",
   adminUser:"xtonmoyx",
   adminHash:"50efe78b96f3a168a4993b44862299545840971c78e2e52312a2fa16526ba7d9",
-  waitSeconds:4   // download countdown. Set to 0 to turn it off
+  waitSeconds:10, // wait for normal visitors (0 = off). VIP and staff skip it
+  botInvite:"https://discord.com/oauth2/authorize?client_id=1566490280431984732&permissions=84992&integration_type=0&scope=bot"
 };
 async function hashPw(u,p){
   const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(u+":"+p));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
 }
-const CATS = [["all","Home"],["Add-on","Add-ons"],["Texture","Textures"],["Map","Maps"],["Skin","Skins"],["Skin Pack","Skin Packs"]];
+const CATS = [["all","Home"],["Add-on","Add-ons"],["Texture","Textures"],["Map","Maps"],["Skin","Skins"],["Skin Pack","Skin Packs"],["Data Pack","Data Packs"]];
 
 const DEFAULT_ITEMS = [
  {id:1,title:"xTonmoyx Skin Pack",category:"Skin Pack",version:"All",size:"ZIP",date:"2026-11-19",
@@ -158,18 +171,23 @@ const DEFAULT_ITEMS = [
 const $ = s=>document.querySelector(s);
 const toast = m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)};
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeImg=u=>/^(https?:\/\/|\/|data:image\/(png|jpe?g|webp);base64,)/i.test(u||"")?u:"";
+const today=()=>new Date().toISOString().slice(0,10);
 const safeUrl = u=>/^(https?:\/\/|#|\/)/i.test(u||"")?u:"#";
 const ytId=u=>{const m=String(u||"").match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);return m?m[1]:""};
-const GRADS={"Add-on":["#5865f2","#8a63f5"],"Texture":["#12a37f","#4fd1a5"],"Map":["#e07a3f","#f3b562"],"Skin":["#d6459a","#f08bc0"],"Skin Pack":["#7b3fe4","#e0509c"]};
-const ICON={"Add-on":"🧩","Texture":"🎨","Map":"🗺️","Skin":"🧑","Skin Pack":"🎭"};
+const GRADS={"Add-on":["#5865f2","#8a63f5"],"Texture":["#12a37f","#4fd1a5"],"Map":["#e07a3f","#f3b562"],"Skin":["#d6459a","#f08bc0"],"Skin Pack":["#7b3fe4","#e0509c"],"Data Pack":["#2f80ed","#56ccf2"]};
+const ICON={"Add-on":"🧩","Texture":"🎨","Map":"🗺️","Skin":"🧑","Skin Pack":"🎭","Data Pack":"📦"};
 let items=[], state={cat:"all",q:"",sort:"new"};
-const isAuth=()=>localStorage.getItem("xt_auth")==="1";
+const me=()=>{try{const x=JSON.parse(localStorage.getItem("xt_sess")||"null");if(x&&(!x.exp||x.exp>=today()))return x}catch(e){}return localStorage.getItem("xt_auth")==="1"?{u:CONFIG.adminUser,role:"owner"}:null};
+let users=[];
 const gh=()=>{try{return JSON.parse(localStorage.getItem("xt_gh")||"{}")}catch(e){return{}}};
 
+async function jget(f){try{const r=await fetch(f+"?"+Date.now(),{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j))return j}}catch(e){}return null}
 async function load(){
-  items=DEFAULT_ITEMS;
-  try{const r=await fetch("items.json?"+Date.now(),{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j))items=j;}}catch(e){}
-  render();
+  items=(await jget("items.json"))||DEFAULT_ITEMS;
+  const u=await jget("users.json");
+  if(u){users=u;const m=me();if(m&&m.role!=="owner"&&!users.some(x=>x.u===m.u&&x.h===m.h))localStorage.removeItem("xt_sess")}
+  render();renderExtra();
 }
 function filtered(){
   const q=state.q.trim().toLowerCase();
@@ -180,17 +198,17 @@ function render(){
   const list=filtered(), name=(CATS.find(c=>c[0]===state.cat)||[])[1];
   $("#title").textContent=state.q?`Results for “${state.q}”`:(state.cat==="all"?"Latest uploads":name);
   $("#grid").innerHTML=list.length?list.map(card).join(""):`<div class="empty"><h3>Nothing found</h3><p>Try a different word, or pick another category.</p></div>`;
-  const nav=CATS.map(c=>`<button data-cat="${c[0]}" class="${state.cat===c[0]?"on":""}">${c[1]}</button>`).join("");
+  const nav=CATS.map(c=>`<button data-cat="${c[0]}" class="${state.cat===c[0]?"on":""}">${c[1]}</button>`).join("")+`<button data-go="projects">Projects</button><button data-go="support">Support</button>`;
   $("#nav").innerHTML=nav;$("#mnav").innerHTML=nav;
   $("#chips").innerHTML=CATS.slice(1).map(c=>`<button class="chip" data-cat="${c[0]}">${c[1]}</button>`).join("");
-  $("#authBtn").textContent=isAuth()?"Upload":"Login";
+  const m=me();$("#authBtn").textContent=!m?"Login":m.role==="vip"?"VIP ✔":"Panel";reveal();
 }
 function thumb(i){
   const g=GRADS[i.category]||["#5865f2","#8a63f5"];
-  const bg=i.image?`background-image:url('${esc(safeUrl(i.image))}')`:`background-image:linear-gradient(135deg,${g[0]},${g[1]})`;
+  const bg=i.image?`background-image:url('${esc(safeImg(i.image))}')`:`background-image:linear-gradient(135deg,${g[0]},${g[1]})`;
   return `<div class="thumb" style="${bg}">${i.image?"":esc(i.emoji||ICON[i.category]||"📦")}</div>`;
 }
-function card(i){return `<button class="card" data-id="${i.id}">${thumb(i)}<div class="in"><h3>${esc(i.title)}</h3><div class="meta">${esc(i.category)} · ${esc(i.version)} · ${esc(i.size)}</div><div class="desc">${esc(i.desc)}</div></div></button>`}
+function card(i){return `<button class="card rv" data-id="${i.id}">${thumb(i)}<div class="in"><h3>${esc(i.title)}</h3><div class="meta">${esc(i.category)} · ${esc(i.version)} · ${esc(i.size)}</div><div class="desc">${esc(i.desc)}</div></div></button>`}
 function openItem(id){
   const i=items.find(x=>x.id==id);if(!i)return;
   const vid=ytId(i.video);
@@ -200,84 +218,144 @@ function openItem(id){
    <p style="color:var(--muted);margin-bottom:20px">${esc(i.desc)}</p>
    ${vid?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${vid}" title="Video: ${esc(i.title)}" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`:""}
    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:${vid?16:0}px"><button class="btn" id="dlBtn" data-url="${esc(safeUrl(i.link))}">Download</button><a class="btn alt" href="${CONFIG.youtube}" target="_blank" rel="noopener">Watch on YouTube</a></div>
+   ${me()?"":`<p class="note">Free downloads wait ${CONFIG.waitSeconds}s. VIP members skip the wait.</p>`}
    <a class="report" href="${CONFIG.discord}" target="_blank" rel="noopener">Link not working? Report it on Discord</a>`;
   $("#dlg").showModal();
 }
 function startDownload(btn){
   const url=btn.dataset.url,done=()=>{btn.outerHTML=`<a class="btn" href="${url}" target="_blank" rel="noopener">Download now ✔</a>`};
-  let s=CONFIG.waitSeconds|0;if(s<=0)return done();
+  let s=me()?0:(CONFIG.waitSeconds|0);if(s<=0)return done();
   btn.disabled=true;btn.textContent=`Download starts in ${s}s`;
   const t=setInterval(()=>{s--;if(s>0)btn.textContent=`Download starts in ${s}s`;else{clearInterval(t);done()}},1000);
 }
 
 /* ===== LOGIN ===== */
+const logout=()=>{localStorage.removeItem("xt_sess");localStorage.removeItem("xt_auth");render();$("#adm").close();toast("Logged out")};
+const show=()=>{if(!$("#adm").open)$("#adm").showModal()};
+function openAcct(){const m=me();$("#admBody").innerHTML=`<div class="m-head"><h2>VIP ✔</h2><button class="x" data-close aria-label="Close">✕</button></div><p>Hi ${esc(m.u)}! No waiting on downloads until <b>${esc(m.exp)}</b>.</p><div style="margin-top:14px"><button class="btn alt" id="a_out">Log out</button></div>`;$("#a_out").onclick=logout;show()}
 function openLogin(){
-  $("#admBody").innerHTML=`<div class="m-head"><h2>Admin login</h2><button class="x" data-close aria-label="Close">✕</button></div>
-   <p class="note" style="margin:0 0 6px">Only the owner needs to log in. Visitors can download without an account.</p>
+  $("#admBody").innerHTML=`<div class="m-head"><h2>Login</h2><button class="x" data-close aria-label="Close">✕</button></div>
+   <p class="note" style="margin:0 0 6px">For the owner, helpers and VIP members. Everyone else can download without an account.</p>
    <label for="l_u">Username</label><input class="f" id="l_u" autocomplete="username">
-   <label for="l_p">Password</label><input class="f" id="l_p" type="password" autocomplete="current-password">
+   <label for="l_p">Password / token</label><input class="f" id="l_p" type="password" autocomplete="current-password">
    <div style="margin-top:18px"><button class="btn" id="l_go">Log in</button></div>`;
   const go=async()=>{
-    const u=$("#l_u").value.trim(),h=await hashPw(u,$("#l_p").value);
-    if(u===CONFIG.adminUser&&h===CONFIG.adminHash){localStorage.setItem("xt_auth","1");render();openAdmin();toast("Logged in")}
-    else toast("Wrong username or password");
-  };
+    const raw=$("#l_u").value.trim(),pw=$("#l_p").value,lu=raw.toLowerCase();
+    if(raw===CONFIG.adminUser&&await hashPw(raw,pw)===CONFIG.adminHash){localStorage.setItem("xt_sess",JSON.stringify({u:raw,role:"owner"}));render();openAdmin();return toast("Welcome back, owner")}
+    const u=await jget("users.json");if(u)users=u;
+    const x=users.find(v=>v.u===lu);
+    if(x&&x.exp>=today()&&await hashPw(lu,x.salt+pw.trim())===x.h){localStorage.setItem("xt_sess",JSON.stringify({u:lu,role:x.role,perms:x.perms||[],exp:x.exp,h:x.h}));render();x.role==="helper"?openAdmin():(openAcct(),toast("VIP active ✔"));return}
+    toast("Wrong username/token, or it expired")};
   $("#l_go").onclick=go;$("#l_p").onkeydown=e=>{if(e.key==="Enter")go()};
-  $("#adm").showModal();
+  show();
 }
 
 /* ===== PUBLISH TO GITHUB (commits items.json, Netlify redeploys) ===== */
-async function publish(){
+async function publishFile(name,data){
   const s=gh();if(!s.repo||!s.token)throw new Error("Save your GitHub settings first");
-  const url=`https://api.github.com/repos/${s.repo}/contents/items.json`,br=s.branch||"main";
+  const url=`https://api.github.com/repos/${s.repo}/contents/${name}`,br=s.branch||"main";
   const H={Authorization:"Bearer "+s.token,Accept:"application/vnd.github+json"};
   let sha;const g=await fetch(`${url}?ref=${br}`,{headers:H});
   if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error("GitHub error "+g.status+" (check repo/token)");
-  const body={message:"Update downloads",branch:br,content:btoa(unescape(encodeURIComponent(JSON.stringify(items,null,2))))};
+  const body={message:"Update downloads",branch:br,content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))))};
   if(sha)body.sha=sha;
   const p=await fetch(url,{method:"PUT",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!p.ok)throw new Error("Publish failed: "+p.status);
 }
-async function safePublish(){
-  try{toast("Publishing…");await publish();toast("Published! Live in about a minute.")}
+async function safePublish(n="items.json",d=items){
+  try{toast("Publishing…");await publishFile(n,d);toast("Published! Live in about a minute.")}
   catch(e){toast(e.message)}
 }
 
-function openAdmin(){
-  const s=gh();
-  $("#admBody").innerHTML=`<div class="m-head"><h2>Upload a download</h2><button class="x" data-close aria-label="Close">✕</button></div>
-   <label>Title</label><input class="f" id="a_title">
-   <div class="two"><div><label>Category</label><select class="f" id="a_cat">${CATS.slice(1).map(c=>`<option value="${c[0]}">${c[0]}</option>`).join("")}</select></div>
-   <div><label>Version</label><input class="f" id="a_ver" placeholder="1.21+"></div></div>
-   <div class="two"><div><label>File size</label><input class="f" id="a_size" placeholder="12 MB"></div><div><label>Cover image link (optional)</label><input class="f" id="a_img" placeholder="https://…"></div></div>
-   <label>YouTube video link (optional)</label><input class="f" id="a_vid" placeholder="https://youtube.com/watch?v=…">
-   <label>Download link (Mediafire, Mega, Drive…)</label><input class="f" id="a_link" placeholder="https://">
-   <label>Description</label><textarea class="f" id="a_desc"></textarea>
-   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="a_add">Add & publish</button><button class="btn alt" id="a_out">Log out</button></div>
-   <details ${s.repo&&s.token?"":"open"}><summary>GitHub publish settings</summary>
-    <p class="note">One-time setup. Stored only in this browser. The token needs “Contents: Read and write” on your website repo.</p>
-    <label>Repo (username/repo)</label><input class="f" id="g_repo" value="${esc(s.repo||"")}" placeholder="yourname/your-repo">
-    <div class="two"><div><label>Branch</label><input class="f" id="g_br" value="${esc(s.branch||"main")}"></div><div><label>Token</label><input class="f" id="g_tk" type="password" value="${esc(s.token||"")}" placeholder="github_pat_…"></div></div>
-    <div style="margin-top:12px"><button class="btn alt" id="g_save">Save settings</button></div></details>
-   <h2 style="font-size:1.1rem;margin-top:18px">Your items</h2><div id="a_list"></div>`;
-  const list=()=>{$("#a_list").innerHTML=items.map(i=>`<div class="admin-item"><span>${esc(i.title)} <small style="color:var(--muted)">(${esc(i.category)})</small></span><button class="x" data-del="${i.id}" aria-label="Delete ${esc(i.title)}">🗑</button></div>`).join("")||`<p class="note">No items yet.</p>`};
-  list();
-  $("#g_save").onclick=()=>{localStorage.setItem("xt_gh",JSON.stringify({repo:$("#g_repo").value.trim(),branch:$("#g_br").value.trim()||"main",token:$("#g_tk").value.trim()}));toast("Settings saved")};
-  $("#a_out").onclick=()=>{localStorage.removeItem("xt_auth");render();$("#adm").close();toast("Logged out")};
-  $("#a_add").onclick=async()=>{
-    const title=$("#a_title").value.trim(),link=$("#a_link").value.trim();
-    if(!title||!link)return toast("Enter a title and a download link");
-    items.unshift({id:Date.now(),title,category:$("#a_cat").value,version:$("#a_ver").value||"All",size:$("#a_size").value||"-",date:new Date().toISOString().slice(0,10),desc:$("#a_desc").value,link,image:$("#a_img").value.trim(),video:$("#a_vid").value.trim()});
-    render();list();["a_title","a_ver","a_size","a_link","a_img","a_vid","a_desc"].forEach(k=>$("#"+k).value="");
-    await safePublish();
-  };
-  $("#a_list").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Delete this download?")){items=items.filter(x=>x.id!=d.dataset.del);render();list();await safePublish()}};
-  $("#adm").showModal();
+let editId=null,pic="";
+const img2data=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,720/i.width),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",.82))};i.onerror=no;i.src=r.result};r.onerror=no;r.readAsDataURL(f)});
+function openAdmin(tab="up"){
+  const m=me();if(!m)return openLogin();
+  const own=m.role==="owner",can=p=>own||(m.perms||[]).includes(p),s=gh();
+  const H=`<div class="m-head"><h2>${own?"Owner panel":"Helper panel"}</h2><button class="x" data-close aria-label="Close">✕</button></div><div class="row" style="margin:0 0 6px"><button class="chip" data-tab="up">Uploads</button>${own?`<button class="chip" data-tab="mem">Members</button>`:""}</div>`;
+  const out=`<div style="margin-top:16px"><button class="btn alt" id="a_out">Log out</button></div>`;
+  $("#admBody").onclick=e=>{const t=e.target.closest("[data-tab]");if(t){editId=null;pic="";openAdmin(t.dataset.tab)}};
+  if(tab==="mem"&&own){
+    $("#admBody").innerHTML=H+`<p class="note" style="margin:6px 0">Create a login for a VIP or helper after they pay. The token is shown once. Copy it and send it to them.</p>
+     <div class="two"><div><label>Username</label><input class="f" id="m_u"></div><div><label>Type</label><select class="f" id="m_r"><option value="vip">VIP</option><option value="helper">Helper</option></select></div></div>
+     <div class="two"><div><label>Months valid</label><input class="f" id="m_mo" type="number" min="1" value="1"></div><div><label>Helper can</label><div class="row" style="margin:6px 0 0"><label style="margin:0"><input type="checkbox" class="m_p" value="add" checked> add</label><label style="margin:0"><input type="checkbox" class="m_p" value="edit"> edit</label><label style="margin:0"><input type="checkbox" class="m_p" value="delete"> delete</label></div></div></div>
+     <div style="margin-top:14px"><button class="btn" id="m_add">Create & publish</button></div><div id="m_out"></div>
+     <h2 style="font-size:1.1rem;margin-top:18px">Members</h2><div id="m_list"></div>`+out;
+    const list=()=>{$("#m_list").innerHTML=users.length?users.map(x=>`<div class="admin-item"><span>${esc(x.u)} <small style="color:var(--muted)">${esc(x.role)} · until ${esc(x.exp)}</small></span><span><button class="x" data-ext="${esc(x.u)}" title="+1 month">+1</button> <button class="x" data-rm="${esc(x.u)}" aria-label="Remove">🗑</button></span></div>`).join(""):`<p class="note">No members yet.</p>`};
+    list();
+    const addMo=(d,n)=>{const t=new Date(d>today()?d:today());t.setMonth(t.getMonth()+n);return t.toISOString().slice(0,10)};
+    $("#m_add").onclick=async()=>{
+      const u=$("#m_u").value.trim().toLowerCase();
+      if(!/^[a-z0-9_.-]{3,20}$/.test(u))return toast("Username: 3-20 letters or numbers");
+      if(u===CONFIG.adminUser.toLowerCase()||users.some(x=>x.u===u))return toast("Username already used");
+      const rnd=n=>[...crypto.getRandomValues(new Uint8Array(n))],tok=rnd(16).map(b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join(""),salt=rnd(6).map(b=>b.toString(16).padStart(2,"0")).join("");
+      const role=$("#m_r").value;
+      users.push({u,role,salt,h:await hashPw(u,salt+tok),exp:addMo(today(),Math.max(1,+$("#m_mo").value||1)),perms:role==="helper"?[...document.querySelectorAll(".m_p:checked")].map(c=>c.value):[]});
+      list();$("#m_out").innerHTML=`<p class="note" style="user-select:all"><b>Username:</b> ${esc(u)}<br><b>Token:</b> ${tok}</p><p class="note">Save this now. It cannot be shown again.</p>`;
+      await safePublish("users.json",users)};
+    $("#m_list").onclick=async e=>{
+      const x=e.target.closest("[data-ext]"),r=e.target.closest("[data-rm]");
+      if(x){const u=users.find(v=>v.u===x.dataset.ext);u.exp=addMo(u.exp,1);list();await safePublish("users.json",users)}
+      if(r&&confirm("Remove this member?")){users=users.filter(v=>v.u!==r.dataset.rm);list();await safePublish("users.json",users)}};
+  }else{
+    $("#admBody").innerHTML=H+`<h3 style="margin:10px 0 0">${"Add or edit a download"}</h3>
+     <label>Title</label><input class="f" id="a_title">
+     <div class="two"><div><label>Category</label><select class="f" id="a_cat">${CATS.slice(1).map(c=>`<option value="${c[0]}">${c[0]}</option>`).join("")}</select></div>
+     <div><label>Version</label><input class="f" id="a_ver" placeholder="1.21+"></div></div>
+     <div class="two"><div><label>File size</label><input class="f" id="a_size" placeholder="12 MB"></div><div><label>Cover photo (upload)</label><input class="f" id="a_file" type="file" accept="image/*"></div></div>
+     <label>…or cover image link</label><input class="f" id="a_img" placeholder="https://…">
+     <label>YouTube video link (optional)</label><input class="f" id="a_vid" placeholder="https://youtube.com/watch?v=…">
+     <label>Download link (Mediafire, Mega, Drive…)</label><input class="f" id="a_link" placeholder="https://">
+     <label>Description</label><textarea class="f" id="a_desc"></textarea>
+     <div style="margin-top:16px"><button class="btn" id="a_add">Add & publish</button></div>
+     <details ${s.repo&&s.token?"":"open"}><summary>GitHub publish settings</summary>
+      <p class="note">One-time setup. Stored only in this browser. The token needs “Contents: Read and write” on your website repo.</p>
+      <label>Repo (username/repo)</label><input class="f" id="g_repo" value="${esc(s.repo||"")}" placeholder="yourname/your-repo">
+      <div class="two"><div><label>Branch</label><input class="f" id="g_br" value="${esc(s.branch||"main")}"></div><div><label>Token</label><input class="f" id="g_tk" type="password" value="${esc(s.token||"")}" placeholder="github_pat_…"></div></div>
+      <div style="margin-top:12px"><button class="btn alt" id="g_save">Save settings</button></div></details>
+     <h2 style="font-size:1.1rem;margin-top:18px">Your items</h2><div id="a_list"></div>`+out;
+    const list=()=>{$("#a_list").innerHTML=items.map(i=>`<div class="admin-item"><span>${esc(i.title)} <small style="color:var(--muted)">(${esc(i.category)})</small></span><span>${can("edit")?`<button class="x" data-edit="${i.id}" aria-label="Edit">✏️</button> `:""}${can("delete")?`<button class="x" data-del="${i.id}" aria-label="Delete">🗑</button>`:""}</span></div>`).join("")};
+    list();
+    $("#g_save").onclick=()=>{localStorage.setItem("xt_gh",JSON.stringify({repo:$("#g_repo").value.trim(),branch:$("#g_br").value.trim()||"main",token:$("#g_tk").value.trim()}));toast("Settings saved")};
+    $("#a_file").onchange=async e=>{try{pic=await img2data(e.target.files[0]);toast("Photo added ✔")}catch(x){toast("Could not read that image")}};
+    $("#a_img").oninput=()=>pic="";
+    $("#a_add").onclick=async()=>{
+      const title=$("#a_title").value.trim(),link=$("#a_link").value.trim();
+      if(!title||!link)return toast("Enter a title and a download link");
+      if(editId?!can("edit"):!can("add"))return toast("You don't have permission for this");
+      const o={title,category:$("#a_cat").value,version:$("#a_ver").value||"All",size:$("#a_size").value||"-",desc:$("#a_desc").value,link,image:pic||$("#a_img").value.trim(),video:$("#a_vid").value.trim()};
+      if(editId)items=items.map(x=>x.id==editId?{...x,...o}:x);else items.unshift({id:Date.now(),date:today(),...o});
+      editId=null;pic="";render();list();["a_title","a_ver","a_size","a_link","a_img","a_vid","a_desc","a_file"].forEach(k=>$("#"+k).value="");$("#a_add").textContent="Add & publish";
+      await safePublish()};
+    $("#a_list").onclick=async e=>{
+      const d=e.target.closest("[data-del]"),ed=e.target.closest("[data-edit]");
+      if(d&&confirm("Delete this download?")){items=items.filter(x=>x.id!=d.dataset.del);render();list();await safePublish()}
+      if(ed){const i=items.find(x=>x.id==ed.dataset.edit);editId=i.id;pic=i.image||"";
+        [["a_title","title"],["a_ver","version"],["a_size","size"],["a_link","link"],["a_vid","video"],["a_desc","desc"]].forEach(([k,f])=>$("#"+k).value=i[f]||"");
+        $("#a_cat").value=i.category;$("#a_img").value=pic.startsWith("data:")?"":pic;$("#a_add").textContent="Save changes";$("#a_title").scrollIntoView({behavior:"smooth"})}};
+  }
+  $("#a_out").onclick=logout;show();
+}
+
+/* ===== PROJECTS + SUPPORT ===== */
+const LAFICON="data:image/png;base64,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";
+const PROJECTS=[
+ {n:"LAF Bot",d:"All-in-one Discord bot with a special economy system.",live:1},
+ {n:"LAF Network",d:"Our Minecraft server."},
+ {n:"Gorilla Optimizer",d:"A performance optimizer."},
+ {n:"LAF Client",d:"Our own Minecraft client."}];
+const io="IntersectionObserver" in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.08}):null;
+function reveal(){document.querySelectorAll(".rv:not(.in)").forEach(el=>io?io.observe(el):el.classList.add("in"))}
+function renderExtra(){
+  $("#projects").innerHTML=`<h2>Projects</h2><p class="note" style="margin:0">What we are building. VIP members get early access to everything marked coming soon.</p><div class="pgrid">`+PROJECTS.map(p=>`<div class="proj rv"><div class="pic">${p.live?`<img src="${LAFICON}" alt="">`:"?"}</div><div class="ph"><h3>${p.n}</h3><span class="badge ${p.live?"live":""}">${p.live?"Available":"Coming soon"}</span></div><p class="desc" style="-webkit-line-clamp:unset">${p.d}</p>${p.live?`<a class="btn" href="${esc(CONFIG.botInvite)}" target="_blank" rel="noopener">Invite to your server</a>`:`<span class="note" style="margin:0">⭐ VIP early access</span>`}</div>`).join("")+`</div>`;
+  $("#support").innerHTML=`<div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"><div class="proj rv"><h2>Support us 💜</h2><p class="desc" style="-webkit-line-clamp:unset">Want to donate and help us keep building? Donations are done through our Discord server, so you need to be in the server to donate. Your small act of kindness means a lot to us.</p><div><a class="btn" href="${CONFIG.discord}" target="_blank" rel="noopener">Join Discord to donate</a></div></div><div class="proj rv"><h2>⭐ VIP · $0.50 / month</h2><p class="desc" style="-webkit-line-clamp:unset">Without VIP, every download has a ${CONFIG.waitSeconds}-second wait. VIP skips it, plus you get early access to our upcoming projects and a custom role in our Discord server. Buy it in our Discord server.</p><div><a class="btn alt" href="${CONFIG.discord}" target="_blank" rel="noopener">Get VIP</a></div></div></div>`;
+  reveal();
 }
 
 /* ===== EVENTS ===== */
 const setCat=c=>{state.cat=c;render();$("#list").scrollIntoView({behavior:"smooth"})};
-$("#authBtn").onclick=()=>isAuth()?openAdmin():openLogin();
+$("#authBtn").onclick=()=>{const m=me();m?(m.role==="vip"?openAcct():openAdmin()):openLogin()};
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)document.getElementById(g.dataset.go).scrollIntoView({behavior:"smooth"})});
 $("#q").addEventListener("input",e=>{state.q=e.target.value;render()});
 $("#q").addEventListener("keydown",e=>{if(e.key==="Enter")$("#list").scrollIntoView({behavior:"smooth"})});
 $("#go").onclick=()=>{state.q=$("#q").value;render();$("#list").scrollIntoView({behavior:"smooth"})};
