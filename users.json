@@ -6,5 +6,13 @@
     "h": "aa9fa8899249c24a09809b990c578aac8d38d866291e82710e7fc4ae1f8580ee",
     "exp": "2027-02-21",
     "perms": []
+  },
+  {
+    "u": "taha",
+    "role": "vip",
+    "salt": "a655aca0878d",
+    "h": "55a1015d8ef39c53b3227fb7abfdb75b37b3d27c7ef2f635a3d7dac29b4d9554",
+    "exp": "2026-12-21",
+    "perms": []
   }
 ]
