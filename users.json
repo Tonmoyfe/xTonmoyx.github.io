@@ -14,5 +14,15 @@
     "h": "55a1015d8ef39c53b3227fb7abfdb75b37b3d27c7ef2f635a3d7dac29b4d9554",
     "exp": "2026-12-21",
     "perms": []
+  },
+  {
+    "u": "a1x",
+    "role": "helper",
+    "salt": "a9f5fff85eac",
+    "h": "98c21a611692ced5c8f0ca4f21d0460b656890119e470e8666e4cdeb388f29f1",
+    "exp": "2026-12-21",
+    "perms": [
+      "add"
+    ]
   }
 ]
