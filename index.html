@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://tonmoyfe.github.io/xTonmoyx.github.io/">
+<meta property="og:url" content="https://tonmoyfe.github.io/xTonmoyx.github.io/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"xTonmoyx Download Hub","description":"Free Minecraft Bedrock add-ons, textures, maps, skins and skin packs.","inLanguage":"en"}</script>
+<script>try{var t=localStorage.getItem("xt_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>xTonmoyx Download Hub – Minecraft Add-ons, Textures, Maps, Skins & Skin Packs</title>
 <meta name="description" content="Free Minecraft Bedrock downloads by xTonmoyx. Add-ons, textures, maps, skins and skin packs.">
 <meta property="og:type" content="website">
@@ -57,7 +63,7 @@ h2{font:800 1.5rem var(--hd);letter-spacing:-.01em}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;text-align:left;padding:0;transition:transform .15s,box-shadow .15s}
 .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
 .thumb{height:150px;display:grid;place-items:center;font-size:3.2rem;background-size:cover;background-position:center}
-.card .in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
 .card h3{font:700 1.05rem var(--hd)}.card .meta{font-size:.85rem;color:var(--muted)}
 .card .desc{font-size:.9rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .empty{grid-column:1/-1;text-align:center;padding:60px 10px;color:var(--muted)}
@@ -85,7 +91,7 @@ details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:
 .report:hover{color:var(--text)}
 @keyframes up{from{opacity:0;transform:translateY(14px)}}
 .hero>*{animation:up .6s backwards}.hero>*:nth-child(2){animation-delay:.08s}.hero>*:nth-child(3){animation-delay:.16s}.hero>*:nth-child(4){animation-delay:.24s}
-.rv{opacity:0}.rv.in{opacity:1;animation:up .5s backwards}
+.rv{opacity:0}.rv.in{opacity:1;animation:up .5s backwards}.rv.static{animation:none}
 .sec{margin-top:56px}.sec>h2{margin-bottom:6px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
 .proj{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:transform .2s,border-color .2s}
@@ -124,6 +130,7 @@ details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:
     <select id="sort" aria-label="Sort"><option value="new">Newest</option><option value="az">A to Z</option></select>
   </div>
   <div class="grid" id="grid"></div>
+  <noscript><p class="note">JavaScript is needed to browse downloads. Join our <a href="https://discord.gg/JwYHKSkRt4"><u>Discord</u></a> or watch <a href="https://youtube.com/@xtonmoyx"><u>YouTube</u></a> for free Minecraft Bedrock add-ons, textures, maps, skins and skin packs.</p></noscript>
   <section class="sec" id="projects"></section>
   <section class="sec" id="support"></section>
 </main>
@@ -140,19 +147,20 @@ details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:
 
 <dialog id="dlg"><div class="m-body" id="dlgBody"></div></dialog>
 <dialog id="adm"><div class="m-body" id="admBody"></div></dialog>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ===== SETTINGS ===== */
 /* The password is NOT stored here any more, only a SHA-256 hash of "username:password".
    To change it: open the browser console (F12) on any page and run
-   hashPw("xtonmoyx","YOUR NEW PASSWORD").then(console.log)
+   ownerHash("xtonmoyx","YOUR NEW PASSWORD").then(console.log)
    then paste the result into adminHash below. Use a LONG password (14+ characters). */
 const CONFIG = {
   discord:"https://discord.gg/JwYHKSkRt4",
   youtube:"https://youtube.com/@xtonmoyx",
   adminUser:"xtonmoyx",
-  adminHash:"50efe78b96f3a168a4993b44862299545840971c78e2e52312a2fa16526ba7d9",
+  adminSalt:"a8cbdc3210b7292f4dc4e0b2",iters:200000,
+  adminHash:"ffb1bdad6f657a316f9ae8d9598e1eaf09580e264910fafc48b7ff8efd85838f",
   waitSeconds:10, // wait for normal visitors (0 = off). VIP and staff skip it
   botInvite:"https://discord.com/oauth2/authorize?client_id=1566490280431984732&permissions=84992&integration_type=0&scope=bot"
 };
@@ -160,10 +168,11 @@ async function hashPw(u,p){
   const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(u+":"+p));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
 }
+async function ownerHash(u,p){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(u+":"+p),"PBKDF2",false,["deriveBits"]);const b=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(CONFIG.adminSalt),iterations:CONFIG.iters},k,256);return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
 const CATS = [["all","Home"],["Add-on","Add-ons"],["Texture","Textures"],["Map","Maps"],["Skin","Skins"],["Skin Pack","Skin Packs"],["Data Pack","Data Packs"]];
 
 const DEFAULT_ITEMS = [
- {id:1,title:"xTonmoyx Skin Pack",category:"Skin Pack",version:"All",size:"ZIP",date:"2026-11-19",
+ {id:1,title:"xTonmoyx Skin Pack",category:"Skin Pack",version:"All",size:"",date:"2026-11-19",
   desc:"Skin pack download for Minecraft Bedrock. Open the file on your phone or PC to import it.",
   link:"https://www.mediafire.com/file/jctzljfgh3c2c6i/skin+pack.zip/file",image:"",video:"",emoji:"🧑‍🎤"}
 ];
@@ -171,16 +180,16 @@ const DEFAULT_ITEMS = [
 const $ = s=>document.querySelector(s);
 const toast = m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)};
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const safeImg=u=>/^(https?:\/\/|\/|data:image\/(png|jpe?g|webp);base64,)/i.test(u||"")?u:"";
+const safeImg=u=>/^(https?:\/\/|\/|img\/|data:image\/(png|jpe?g|webp);base64,)/i.test(u||"")?u:"";
 const today=()=>new Date().toISOString().slice(0,10);
 const safeUrl = u=>/^(https?:\/\/|#|\/)/i.test(u||"")?u:"#";
 const ytId=u=>{const m=String(u||"").match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);return m?m[1]:""};
 const GRADS={"Add-on":["#5865f2","#8a63f5"],"Texture":["#12a37f","#4fd1a5"],"Map":["#e07a3f","#f3b562"],"Skin":["#d6459a","#f08bc0"],"Skin Pack":["#7b3fe4","#e0509c"],"Data Pack":["#2f80ed","#56ccf2"]};
 const ICON={"Add-on":"🧩","Texture":"🎨","Map":"🗺️","Skin":"🧑","Skin Pack":"🎭","Data Pack":"📦"};
-let items=[], state={cat:"all",q:"",sort:"new"};
-const me=()=>{try{const x=JSON.parse(localStorage.getItem("xt_sess")||"null");if(x&&(!x.exp||x.exp>=today()))return x}catch(e){}return localStorage.getItem("xt_auth")==="1"?{u:CONFIG.adminUser,role:"owner"}:null};
+let firstPaint=true,items=[], state={cat:"all",q:"",sort:"new"};
+const me=()=>{try{const x=JSON.parse(localStorage.getItem("xt_sess")||"null");if(x&&(!x.exp||x.exp>=today()))return x}catch(e){}return null};
 let users=[];
-const gh=()=>{try{return JSON.parse(localStorage.getItem("xt_gh")||"{}")}catch(e){return{}}};
+const gh=()=>{try{return JSON.parse(sessionStorage.getItem("xt_gh")||localStorage.getItem("xt_gh")||"{}")}catch(e){return{}}};
 
 async function jget(f){try{const r=await fetch(f+"?"+Date.now(),{cache:"no-store"});if(r.ok){const j=await r.json();if(Array.isArray(j))return j}}catch(e){}return null}
 async function load(){
@@ -201,20 +210,20 @@ function render(){
   const nav=CATS.map(c=>`<button data-cat="${c[0]}" class="${state.cat===c[0]?"on":""}">${c[1]}</button>`).join("")+`<button data-go="projects">Projects</button><button data-go="support">Support</button>`;
   $("#nav").innerHTML=nav;$("#mnav").innerHTML=nav;
   $("#chips").innerHTML=CATS.slice(1).map(c=>`<button class="chip" data-cat="${c[0]}">${c[1]}</button>`).join("");
-  const m=me();$("#authBtn").textContent=!m?"Login":m.role==="vip"?"VIP ✔":"Panel";reveal();
+  const m=me();$("#authBtn").textContent=!m?"Login":m.role==="vip"?"VIP ✔":"Panel";reveal();firstPaint=false;
 }
 function thumb(i){
   const g=GRADS[i.category]||["#5865f2","#8a63f5"];
   const bg=i.image?`background-image:url('${esc(safeImg(i.image))}')`:`background-image:linear-gradient(135deg,${g[0]},${g[1]})`;
   return `<div class="thumb" style="${bg}">${i.image?"":esc(i.emoji||ICON[i.category]||"📦")}</div>`;
 }
-function card(i){return `<button class="card rv" data-id="${i.id}">${thumb(i)}<div class="in"><h3>${esc(i.title)}</h3><div class="meta">${esc(i.category)} · ${esc(i.version)} · ${esc(i.size)}</div><div class="desc">${esc(i.desc)}</div></div></button>`}
+function card(i){return `<button class="card rv${firstPaint?"":" in static"}" data-id="${i.id}">${thumb(i)}<div class="card-body"><h3>${esc(i.title)}</h3><div class="meta">${[i.category,i.version,i.size].filter(v=>v&&v!=="-").map(esc).join(" · ")}</div><div class="desc">${esc(i.desc)}</div></div></button>`}
 function openItem(id){
   const i=items.find(x=>x.id==id);if(!i)return;
   const vid=ytId(i.video);
   $("#dlgBody").innerHTML=`<div class="m-head"><h2>${esc(i.title)}</h2><button class="x" data-close aria-label="Close">✕</button></div>
    <div style="border-radius:12px;overflow:hidden">${thumb(i)}</div>
-   <div class="row"><span class="tag">${esc(i.category)}</span><span class="tag">Version ${esc(i.version)}</span><span class="tag">${esc(i.size)}</span><span class="tag">${esc(i.date)}</span></div>
+   <div class="row"><span class="tag">${esc(i.category)}</span><span class="tag">Version ${esc(i.version)}</span>${i.size&&i.size!=="-"?`<span class="tag">${esc(i.size)}</span>`:""}<span class="tag">${esc(i.date)}</span></div>
    <p style="color:var(--muted);margin-bottom:20px">${esc(i.desc)}</p>
    ${vid?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${vid}" title="Video: ${esc(i.title)}" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`:""}
    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:${vid?16:0}px"><button class="btn" id="dlBtn" data-url="${esc(safeUrl(i.link))}">Download</button><a class="btn alt" href="${CONFIG.youtube}" target="_blank" rel="noopener">Watch on YouTube</a><button class="btn alt" id="shareBtn" data-id="${i.id}">🔗 Copy link</button></div>
@@ -230,7 +239,7 @@ function startDownload(btn){
 }
 
 /* ===== LOGIN ===== */
-const logout=()=>{localStorage.removeItem("xt_sess");localStorage.removeItem("xt_auth");render();$("#adm").close();toast("Logged out")};
+const logout=()=>{sessionStorage.removeItem("xt_gh");localStorage.removeItem("xt_sess");localStorage.removeItem("xt_auth");render();$("#adm").close();toast("Logged out")};
 const show=()=>{if(!$("#adm").open)$("#adm").showModal()};
 function openAcct(){const m=me();$("#admBody").innerHTML=`<div class="m-head"><h2>VIP ✔</h2><button class="x" data-close aria-label="Close">✕</button></div><p>Hi ${esc(m.u)}! No waiting on downloads until <b>${esc(m.exp)}</b>.</p><div style="margin-top:14px"><button class="btn alt" id="a_out">Log out</button></div>`;$("#a_out").onclick=logout;show()}
 function openLogin(){
@@ -240,24 +249,24 @@ function openLogin(){
    <label for="l_p">Password / token</label><input class="f" id="l_p" type="password" autocomplete="current-password">
    <div style="margin-top:18px"><button class="btn" id="l_go">Log in</button></div>`;
   const go=async()=>{
-    const raw=$("#l_u").value.trim(),pw=$("#l_p").value,lu=raw.toLowerCase();
-    if(raw===CONFIG.adminUser&&await hashPw(raw,pw)===CONFIG.adminHash){localStorage.setItem("xt_sess",JSON.stringify({u:raw,role:"owner"}));render();openAdmin();return toast("Welcome back, owner")}
+    const raw=$("#l_u").value.trim(),pw=$("#l_p").value,lu=raw.toLowerCase();if(Date.now()<(+localStorage.getItem("xt_lock")||0))return toast("Too many tries. Wait 1 minute");
+    if(raw===CONFIG.adminUser&&await ownerHash(raw,pw)===CONFIG.adminHash){localStorage.setItem("xt_sess",JSON.stringify({u:raw,role:"owner"}));render();openAdmin();return toast("Welcome back, owner")}
     const u=await jget("users.json");if(u)users=u;
     const x=users.find(v=>v.u===lu);
     if(x&&x.exp>=today()&&await hashPw(lu,x.salt+pw.trim())===x.h){localStorage.setItem("xt_sess",JSON.stringify({u:lu,role:x.role,perms:x.perms||[],exp:x.exp,h:x.h}));render();x.role==="helper"?openAdmin():(openAcct(),toast("VIP active ✔"));return}
-    toast("Wrong username/token, or it expired")};
+    const n=(+localStorage.getItem("xt_try")||0)+1;localStorage.setItem("xt_try",n);if(n>=5){localStorage.setItem("xt_lock",Date.now()+60000);localStorage.setItem("xt_try",0)}toast("Wrong username/token, or it expired")};
   $("#l_go").onclick=go;$("#l_p").onkeydown=e=>{if(e.key==="Enter")go()};
   show();
 }
 
 /* ===== PUBLISH TO GITHUB (commits items.json, Netlify redeploys) ===== */
-async function publishFile(name,data){
+async function publishFile(name,data,raw){
   const s=gh();if(!s.repo||!s.token)throw new Error("Not saved yet! Add your GitHub repo and token in the GitHub publish settings below, then press the button again");
   const url=`https://api.github.com/repos/${s.repo}/contents/${name}`,br=s.branch||"main";
   const H={Authorization:"Bearer "+s.token,Accept:"application/vnd.github+json"};
   let sha;const g=await fetch(`${url}?ref=${br}`,{headers:H});
   if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error("GitHub error "+g.status+" (check repo/token)");
-  const body={message:"Update downloads",branch:br,content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))))};
+  const body={message:"Update downloads",branch:br,content:raw?data:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))))};
   if(sha)body.sha=sha;
   const p=await fetch(url,{method:"PUT",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!p.ok)throw new Error("Publish failed: "+p.status);
@@ -312,18 +321,19 @@ function openAdmin(tab="up"){
       <p class="note">One-time setup. Stored only in this browser. The token needs “Contents: Read and write” on your website repo.</p>
       <label>Repo (username/repo)</label><input class="f" id="g_repo" value="${esc(s.repo||"")}" placeholder="yourname/your-repo">
       <div class="two"><div><label>Branch</label><input class="f" id="g_br" value="${esc(s.branch||"main")}"></div><div><label>Token</label><input class="f" id="g_tk" type="password" value="${esc(s.token||"")}" placeholder="github_pat_…"></div></div>
-      <div style="margin-top:12px"><button class="btn alt" id="g_save">Save settings</button></div></details>
+      <label style="font-weight:400"><input type="checkbox" id="g_rem" ${localStorage.getItem("xt_gh")?"checked":""}> Remember token on this device (otherwise it is forgotten when you close the tab)</label><div style="margin-top:12px"><button class="btn alt" id="g_save">Save settings</button></div></details>
      <h2 style="font-size:1.1rem;margin-top:18px">Your items</h2><div id="a_list"></div>`+out;
     const list=()=>{$("#a_list").innerHTML=items.map(i=>`<div class="admin-item"><span>${esc(i.title)} <small style="color:var(--muted)">(${esc(i.category)})</small></span><span>${can("edit")?`<button class="x" data-edit="${i.id}" aria-label="Edit">✏️</button> `:""}${can("delete")?`<button class="x" data-del="${i.id}" aria-label="Delete">🗑</button>`:""}</span></div>`).join("")};
     list();
-    $("#g_save").onclick=()=>{localStorage.setItem("xt_gh",JSON.stringify({repo:$("#g_repo").value.trim(),branch:$("#g_br").value.trim()||"main",token:$("#g_tk").value.trim()}));toast("Settings saved")};
+    $("#g_save").onclick=()=>{localStorage.removeItem("xt_gh");sessionStorage.removeItem("xt_gh");(($("#g_rem").checked)?localStorage:sessionStorage).setItem("xt_gh",JSON.stringify({repo:$("#g_repo").value.trim(),branch:$("#g_br").value.trim()||"main",token:$("#g_tk").value.trim()}));toast("Settings saved")};
     $("#a_file").onchange=async e=>{try{pic=await img2data(e.target.files[0]);toast("Photo added ✔")}catch(x){toast("Could not read that image")}};
     $("#a_img").oninput=()=>pic="";
     $("#a_add").onclick=async()=>{
       const title=$("#a_title").value.trim(),link=$("#a_link").value.trim();
       if(!title||!link)return toast("Enter a title and a download link");
       if(editId?!can("edit"):!can("add"))return toast("You don't have permission for this");
-      const o={title,category:$("#a_cat").value,version:$("#a_ver").value||"All",size:$("#a_size").value||"-",desc:$("#a_desc").value,link,image:pic||$("#a_img").value.trim(),video:$("#a_vid").value.trim()};
+      let img=pic||$("#a_img").value.trim();if(img.startsWith("data:")){try{const pth="img/"+Date.now()+".jpg";await publishFile(pth,img.split(",")[1],1);img=pth}catch(x){return toast(x.message)}}
+      const o={title,category:$("#a_cat").value,version:$("#a_ver").value||"All",size:$("#a_size").value||"-",desc:$("#a_desc").value,link,image:img,video:$("#a_vid").value.trim()};
       if(editId)items=items.map(x=>x.id==editId?{...x,...o}:x);else items.unshift({id:Date.now(),date:today(),...o});
       editId=null;pic="";render();list();["a_title","a_ver","a_size","a_link","a_img","a_vid","a_desc","a_file"].forEach(k=>$("#"+k).value="");$("#a_add").textContent="Add & publish";
       await safePublish()};
@@ -341,13 +351,13 @@ function openAdmin(tab="up"){
 const NETICON="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCACAAIADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD5VjTcQCWC4xtJqXyypyp3KenqPaovNOwgDrxnriow7NGyeYRj04Br1krHKWvtAUMrgNHjBxyR/XFSxiIMH2k8/QH61GGBjIAG/wBhk0Ab4dpV9zN0zwTRzdGBbEisd7Djn3PPvR5qyLsBcc9B1HXFMSN0jUjB9B3+tbmn+Hb+7tzO0S28P3vNnOxAvt3NTz8oNpLUyv3hkUkMEyM8Yz70snAZQOeoJ6D2Nbklx4H0qLGqeJXuJgc+VZLkA/Xmq7+MvhmiEJomr3D9maTA/nUur2I9p2TZQQgxjI2t1yT9f0pd8yS5DHGPwx3B9RVo+OPAjS7f7AvYl9C5yB+dX7K++HetERW+s3GlyntcDcn6/wCNJVdQ5+6ZmpKm7vkAYz1Apjb952kg8/MK6m6+H2tLZi/0qW31mzK582xfcwHunX8s1zmDBJvaMEr1Vux9x1H0q4y1uOMlLWLIBHcXG/zgFTrtzjjPemvFFuVUCRZGD6E9qnkuWlbIBUgk7gPzBpzrAi7hMSWA4IHB9vaqu9yiuUICrvCHH8Y4+lREyMTht+OSB0NaNrp9/ft5VrZz3Bx/q4oy56deBWkfBmvx6bcapJpE1vb26b2adlQH8M5P0xT5+4NpbnnyhdoVJSF67icVNEMsVKEZ4BHO6oC2ZSQQFbDDnqCKkhJ424yeFVvSo6aDJ/KZWJJIHTOK0bSxmvrhIreIySE/dHH4n0HvTbC0uL6+jgjRpJHO1Vxj8f8A69XPEOvJoto3hzw+4a6PF5fDkg/3VPas5SZEpNPlW5Zv9Z8P+EYhbiFNZ1tegX/VQH3Pc1xWra14i8RymTUryQxdoYztRR6YotdPSNC8hZj1O7kmtCKFRGGIGzPQVFm9xxgk7vVmLBpBYjCAZ6+tXoNIUMCeg61qrGsR5cBT0HQ08YUAA57D+lU1Yox5dLH8IOcdxVKXTWVuVDehxXUc4y6AHJyetQPErP5bK27PUcfh7UrCMrRta13wxerd6JqlzZyg5wrna31Xofxr1TSPiP4X8cbNM8f2cek6uQVh1m1UKjnt5i/X/IrzeSyjk6/Mc8gDGKy7uzIYqBnPp2oTtsRKkpO+z7nrNxBpngbxzBbeOrEX+kXCnybq2dthzyHXaRnHdTz6ZrU1b4r/AAs0qRbHw1pIvHdsF7a0CjOf7z8k15b4Z8UST2x8F+IrafVdMuDsgRBvmhf+ERn1z09Pzr1v4cfCXQ/h9pz+M/Gs0Md5GhkX7S4MdknYk9Gk9x06Ci7exx17R1qt36JdT0PSrCe7topmWVEdQ4ikBXbnnBXsfaud+LN4tj4Xs9FjYia9nDsAcDZHyT+JIH4VneDvjBJ4z+L66J4f0tf7CEUhknlyJTtH+t/2RnAC++a534s6rJqPxFmhjO63sIltlGeC5+Zv5gfhVxSsc2HpzeISqdFc8jRQBHIBnPAOeBVyCNBHvUgED5tx6VWXMLmHarxsxdSw7dOtX7CH7ZfW1m3IkbL/AO6OT/hTk7I9l6K5rfa5dF8P/aVb/iZXylIc9Y4/X2rnLS1VSWLB3Jy3ctV/WLo33iCaTGIkPkRY6YHH86ktbC5lTMME0oU/eiQkfnWSaWrFCLevVlcq5IDp5bDGPQipFCKckDd36U6XLjZu+YcHjkEUIHjcZjyx4Vj0I/zmtod2NjxGCN24A8nH+e9NGdwVjtOPwAqRGMyZSMIVbgg9e2Pb61ILaWdVWGOSR8Z2oNxHrwKJCBIv3gO7CjLHI7fhUpiUEHI9OO4pgtrq2kVbi3aMYLYYbTj6Go2S4dSYmKrnH0qfIY2fYyNtO1B1buffnpVaDS7/AFe8i02ztpZZ5m8uOONcvIT/ACHua2NJ0C81vVYbDS4Jbq6c8JnjjqWPYD1NewW8vhv4R6KUgtZde8W3cJKW1rGZJCPYAEpGD1Y8mpk0tzKrUcfdgryeyIPDng7wn8HvDH/CT+LpoZdYcbU2DcUJH+qhXu3q38hXEjWh8bvEWreH9auJbCdLYyaFYJJiDzF5PmY++5AxzwMnFcx4lPjXXr+bX/FVhqDS4wm+3kSG1QnhVBGB9e9cfBfXvh/xJZ65YSNHdWcqyqy8dD0qeZPYyWEnFuc37/5eh6p8Cb/R/Cupara6wottSmjxHv4JZCxeM+h4HHfFZF7d3V3qtxdzspkuJ2lkHBXJOef0rU+IumWtz4isvGGjFfsev24vCSMCKXGHH16H6k1zCq8bbFfGOSQM5/GtIlUKau6vWRjQvHNF5cu8gNuX/ZPc1o+H3Kz6neu4YW8BCEce/wD8TWWAyQl22qeuTjr/AEq5pErnwlqkw6mUKfwKilVfQ3mtCtHLtJifOcfezjiuy8EXMk9i7JIwVbzbwfQLXFTEsocqoIBBbNdX8N5o10yZZCMm+Jz+C1xY7Skejl38UPEJil8RXEvmLGrH5gBnnJ5rI8vH7yEt05JHFXtUZ7bWbjdjcHJXPpk1UHnSH5ZAqkcjOMe1dOH/AIcfQwxWtWXqRFm83dIcdwAOvNdZ4MR7bTrzxHcxkQgskRBxhUGXP0zx+FcffuUUJGAZHYKuOcknAH511njm/t9G+DVr4esHxcSgWpK9SuN0jfif51U9VY4K7dlBdTa8aomq6Nba9aPvgjCI7L1eOQblOfY5/wC+q5jQtD1DxFqaadpsJ8x23MzH5Ix03Mf6flW98INQ0/W/hLqmi6lcxLcQI1kBKw4UjMbfgcc9sVyGo/Ei90fwk3hrwzZNpt0Ny6ldnl1lBIKqT3469u1JOyIpTkk6UVqtD1y5voPBPhfVtL+HtkNW1yxtDc6tqUg/dWiqM/O3r/djHPr3rivBv7QVh4Ls5pbbw3FfaxefPfarc3EhnuW9CdvyoOyDge9d98NnjvP2Wv7Ct/IjvNRtLlXdzt82R2b5pG7nGBk9q8xHwP11EzLLpe7/AK+hj+VeVKrDEOUarskz6KjgqmDUalFc0pK7djqtc/aJ1L4geEL/AMOTaBDaW1ygVpxcOxXDA8BgAeleR6ja7kKqAFOTkda6vVfA994U0+Ga+kswkzlFEUofkDPTFYt20Rtyd+4+td2FpU6cLUtjixlWrUn++3R1fhy+fVv2en09+Z9HviF3c/u37fr+lYNw8SnbbwyRoB3IPPfmpfBNwV0HxTYqTseJZAvTkDdn9KqBkKFmJIzn1rpgcFPTmXmZEkcIiyz7CegK9PrVrQVM3g7WUDZ8uXcfplTWUR5ikrjaefl6Y9a0/Asv2jVNX0WQ5N3AduR3xj+e2lUZdRe6UM4BC8EdT61v+BARZy7S2Ben+S1mW9lcX1z9ktUAkH3s8BB3Jre0K88P6BcXNnNrFsjpcbwZpAM/KvOPTNcmN1p2O7ASiq1mybxfG1t4nkQfeKA46ckmsaPzSSSxRvUZOa7afXvA2sag17qmp6K85G3eZypwO3Bp66h8NzBKj6npCy+W3lstycbsHb39f6VlSxihBRcWdVbBe0m5KSs/M5rwjor6x4yCqubezUysO288L+PU/hXY+IdA8D3lvu1TVQbuANGsUN2q7WzzkYPPGKxvCviXw34d8EXFyurWcuqXDPcGBJBvz0RAPpg/jXkcukSXk73dwW82djK7sepJyf51336nzsqcqtVu9kj1fRdI8HaBq4l0++eX7WgR43ulcbs8cYHNY/xO0i1sNQbULSJQl9F5hIHAdQA39D+Nea3GnyWG26ti4kiYOr+45Fema34h0fxJ8M2tW1K1S9jRbqGFn+YuBhk9iQT+Q9qm9tzRU5U6ile9zptAe80z4Kx3VnMUmSylkix2YZwa80Hj/wCIkjAnV5N3qQP8K6zQfEumH4dxaU+p25nFo8QhL/Nk54xWFHZxiEsVJPQcfnXn4WhGTk5rqe9i8RKKgqcuhMmt+IdZs44dd1F7kK28IQMA9M8Uy4Ci2Kg9O1PIWPacrhuCSen/ANamXThIC3DDHUnrXowioKyWh5dScpu8nqW/CDiHSvEc53YMYT8wR/Wodrrg4DLIMjnkD39DVvSoxa/DiaeXIe/uvlH+yP8A9VZ0rMAkZYugGFy3QcmqgYQ3bOeYELtST6grwPbipNJjv7bxAmoWE8dkIAfMupB8iKR19z6CrLMtpEQyhV+9lPvEHHArIvpJ76Bgf3UK52QIePqfU0526Gju9DoNa1q9FuLPTbea0t5wZGuZU2PcZPLfQ1y/9jiQM8gBPXJOSa73wvPH4x8FtolwQdZ0wFrcHrKn938f5j3rIZGjXy3VUIJ+UjBzURSZMGloZ/hPwhY654307Rb13jiuZCrtHwygKWzyPaum/wCFYWVp8RLbQbiVZ4JYpJY5YDxMgQsjA46HGD+NZmg6nb6Z480zUbqYW0ELtvlbOF+Uj+tXfDPjiytkXSdWkMcNo8j2F62dyK4KtHn+6c5FcOI9opvk2sevhPYuCVTe/wDkR6D4Glv9XLQLbw7pjHCZXVfMbOMICcsfpW8vhZf+Eevrq7vLaKS2uCnzzIFKqrbupzuyvC1hQa7oeo6JYSy3WiW95ZZRl1O2d5Pvbg8bKR+XrVS61fTPEOha/a6tqkFvdXF+l9E7wlfO2xlBheSCc+tT7Srtsl5FqnQXm3fqX7zw9ey6pfaQYk8yytzcyAYOUwDkY7nNZVj4SknS0kto1dbwMycjIVTgk+g9+laUHjayt9M0PUPMDXzmG01Ne/kxhlOfqrD8s1Wm1nSX8Q3WkS6gbbSZ9OFhb3qKSsZBDbsdQpPBpurVfQSpUFrf+un+Ro2XgiTTdds7IfZ2e+Um1uI3V4pSP4Q4OAfrWvY6S403WYdWKieyhinge3IbHmSbSGA9v4Tgg1z+k6vo/h7+x9Fh1mK8ij1A3b3EKt5UQ27QoJ5ye9Q+DPFsPh231y7mEU96djRQT5/fnzck/hnP4VE6lZrToXThh4u0ut+u2huapps2kXi2l5skYqJMJgkAjgMOqtjsaxJ45ryeOztk3yTOEUD3rT1RtNOoyX2n3Uk9vd/v/nc74y3LI/qQeM9xitHQYbfQ9Ln8V3qqZj+6sYCeXY/xfT39jXoQb5E3uePiZKEmor0I/EZtbSW00S3kzFYQhWx3cjn+n51i/KiZcn1UelNdvNlNzcSeZOzFnPqSeTUM1wu9EVQOOM8lv8K2jojOMeVWMgL5xDHLr6Dio3XaC7AsAOM8cetTI2xSwAKE52r0NKx3kKAc4OM9DTVupqzLtrq/0XWYdX02TZcwtkejjuD7GvTZ10/x5oZ1/RAI9RQf6ZYj7zN3Kj17+/Ud686uI95bG3ANV7S71LQdWXUdLnaCYc4/hcehHcVlJW1RnKN9VubFzZiRhuQ9yQeagGkrMyyTLuAOFUdcV2VnrvhnxxgXzLo2uHhjj93Ofcd/qOfY1Hd6DqelxB7uANCT8k8J3oR9R0/HFNNMFLuceNE3TmQJnFOGlJ5gcrukbOM8V0LIeARhenBzQYtjb0GB/ePBqrLoVcwP7HjSLZt3ZyflGaJdJRtucMvet1IlAyFIPQknrT1jUkNkRjoSaQJ3ZiRaZEsZUwqAOAScEGnrpMUMu+YKMdCea3bS2uriQwWMEt0xGGZR8v1J6CrM0WieHAtzr1wt7dYzFZRNn8/X+VJtIl1LO3UTSdMi+wHVdXK22nRDcQeDLz0+n86rX99d65qBvzC0dtGMQ2yj7i+v1NZ1/rGoa9erdXx8qBT+4gT7kY9x3NXY5ljjCEopz1HBPeqhG7uxKLvzS3Ksj+YVDMd5GAACP/11ESNg3LlgxwNuPyqxdQSbmkEZ2NzgHv8A55qlLNIY8qArDByByfSreha1M4MPlY54HBPGKmKZG1SCSobOcYqEb1gWR4y0W7lQOaljaDZh3Oenlr0A+vrS32HHzHOpKjcTjccAf41Xa3SWJeuR3IGOvrVh7q1b93HG59MtwP8AGlWUl1YDOB/d6CiysDaTMe604yMWWPAAGOec1paR4u8UeH2UW16Z4VP+qmOfwz/Q5qaR8My8ADp+VVmjjZSG5J9ewrNwuK6e51tv8RfDV8//ABUHhhoZc8zWny/+g4/lUkniD4ezZaG+1CAnna/OPzWuK+yLIcKD+fH41G2nxqh3r82c1NmupPIujO4GteARbgNrF6+Cfl2DJ/ELVe48WeCrdMafpF7qMucgzkhR+eB+lcrFp8CoGwhHc9KsLBBGOIsN1Gf507N7sORdWzSuvGHiLUk+z2SRaXangrAvzY+v+ArKisNk7STO0kh5Z2OSfqTVhXVBlTjnHHtTzcJKfmCoOuR2qoxSKSUdkSbx5PlKfm67h2/+vU8ZUoHdW3Y3BT6+uapFwpxHtG45LMeKkV90bMZRxxtJ5/CqQbl1Lx1YnKkn+HtT5Bbuu54W849Cp/X3rNMwDbARtI445FS/aEjkTzG+Uj7w57VXN0YI/9k=";
 const PROJECTS=[
  {n:"LAF Bot",img:NETICON,d:"All-in-one Discord bot with a special economy system.",live:1},
- {n:"LAF Network",d:"Our Minecraft server."},
- {n:"Gorilla Optimizer",d:"A performance optimizer."},
- {n:"LAF Client",d:"Our own Minecraft client."}];
+ {n:"LAF Network",icon:"🎮",d:"Our Minecraft server."},
+ {n:"Gorilla Optimizer",icon:"⚡",d:"A performance optimizer."},
+ {n:"LAF Client",icon:"🖥️",d:"Our own Minecraft client."}];
 const io="IntersectionObserver" in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.08}):null;
 function reveal(){document.querySelectorAll(".rv:not(.in)").forEach(el=>io?io.observe(el):el.classList.add("in"))}
 function renderExtra(){
-  $("#projects").innerHTML=`<h2>Projects</h2><p class="note" style="margin:0">What we are building. VIP members get early access to everything marked coming soon.</p><div class="pgrid">`+PROJECTS.map(p=>`<div class="proj rv"><div class="pic">${p.img?`<img src="${p.img}" alt="">`:"?"}</div><div class="ph"><h3>${p.n}</h3><span class="badge ${p.live?"live":""}">${p.live?"Available":"Coming soon"}</span></div><p class="desc" style="-webkit-line-clamp:unset">${p.d}</p>${p.live?`<a class="btn" href="${esc(CONFIG.botInvite)}" target="_blank" rel="noopener">Invite to your server</a>`:`<span class="note" style="margin:0">⭐ VIP early access</span>`}</div>`).join("")+`</div>`;
+  $("#projects").innerHTML=`<h2>Projects</h2><p class="note" style="margin:0">What we are building. VIP members get early access to everything marked coming soon.</p><div class="pgrid">`+PROJECTS.map(p=>`<div class="proj rv"><div class="pic">${p.img?`<img src="${p.img}" alt="">`:(p.icon||"?")}</div><div class="ph"><h3>${p.n}</h3><span class="badge ${p.live?"live":""}">${p.live?"Available":"Coming soon"}</span></div><p class="desc" style="-webkit-line-clamp:unset">${p.d}</p>${p.live?`<a class="btn" href="${esc(CONFIG.botInvite)}" target="_blank" rel="noopener">Invite to your server</a>`:`<span class="note" style="margin:0">⭐ VIP early access</span>`}</div>`).join("")+`</div>`;
   $("#support").innerHTML=`<div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"><div class="proj rv"><h2>Support us 💜</h2><p class="desc" style="-webkit-line-clamp:unset">Want to donate and help us keep building? Donations are done through our Discord server, so you need to be in the server to donate. Your small act of kindness means a lot to us.</p><div><a class="btn" href="${CONFIG.discord}" target="_blank" rel="noopener">Join Discord to donate</a></div></div><div class="proj rv"><h2>⭐ VIP · $0.50 / month</h2><p class="desc" style="-webkit-line-clamp:unset">Without VIP, every download has a ${CONFIG.waitSeconds}-second wait. VIP skips it, plus you get early access to our upcoming projects and a custom role in our Discord server. Buy it in our Discord server.</p><div><a class="btn alt" href="${CONFIG.discord}" target="_blank" rel="noopener">Get VIP</a></div></div></div>`;
   reveal();
 }
@@ -356,7 +366,7 @@ function renderExtra(){
 const setCat=c=>{state.cat=c;render();$("#list").scrollIntoView({behavior:"smooth"})};
 $("#authBtn").onclick=()=>{const m=me();m?(m.role==="vip"?openAcct():openAdmin()):openLogin()};
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)document.getElementById(g.dataset.go).scrollIntoView({behavior:"smooth"})});
-$("#q").addEventListener("input",e=>{state.q=e.target.value;render()});
+let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);const v=e.target.value;qt=setTimeout(()=>{state.q=v;render()},220)});
 $("#q").addEventListener("keydown",e=>{if(e.key==="Enter")$("#list").scrollIntoView({behavior:"smooth"})});
 $("#go").onclick=()=>{state.q=$("#q").value;render();$("#list").scrollIntoView({behavior:"smooth"})};
 ["#nav","#mnav","#chips"].forEach(s=>$(s).addEventListener("click",e=>{const b=e.target.closest("[data-cat]");if(b)setCat(b.dataset.cat)}));
@@ -364,7 +374,7 @@ $("#sort").onchange=e=>{state.sort=e.target.value;render()};
 $("#grid").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openItem(c.dataset.id)});
 document.addEventListener("click",e=>{const d=e.target.closest("#dlBtn");if(d)startDownload(d)});
 document.addEventListener("click",e=>{if(e.target.closest("[data-close]"))e.target.closest("dialog").close();if(e.target.tagName==="DIALOG")e.target.close()});
-$("#theme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=d?"light":"dark"};
+$("#theme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=d?"light":"dark";try{localStorage.setItem("xt_theme",r.dataset.theme)}catch(e){}};
 $("#dlg").addEventListener("close",()=>{$("#dlgBody").innerHTML="";if(/^#item-/.test(location.hash))history.replaceState(null,"",location.pathname+location.search)});
 $("#yr").textContent=new Date().getFullYear();
 function openFromHash(){const m=location.hash.match(/^#item-(\d+)$/);if(!m)return;if(items.some(x=>x.id==m[1]))openItem(m[1]);else toast("That download is not available any more")}
